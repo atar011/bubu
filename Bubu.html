@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Will You Be My Valentine? 💕</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at center, #1a5c4a 0%, #0a2e24 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow: hidden;
+        }
+        #container {
+            background: #fffafa;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            max-width: 850px;
+            width: 100%;
+            text-align: center;
+            border: 8px solid #5d2e0c;
+            position: relative;
+        }
+        h1 { color: #c41e3a; margin-bottom: 10px; font-size: 1.8rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .info {
+            background: #f0fff0;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            border: 2px solid #2e7d32;
+            font-size: 1rem;
+            color: #1b5e20;
+        }
+        .target-list {
+            background: #fff9c4;
+            padding: 12px;
+            border-radius: 15px;
+            margin: 15px 0;
+            border: 2px solid #fbc02d;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .target-item {
+            display: inline-block;
+            background: white;
+            padding: 6px 14px;
+            margin: 4px;
+            border-radius: 20px;
+            border: 2px solid #0f4c3a;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        .target-item.sunk {
+            background: #c8e6c9;
+            border-color: #4caf50;
+            text-decoration: line-through;
+            color: #2e7d32;
+            opacity: 0.7;
+            transform: scale(0.95);
+        }
+        #gameCanvas {
+            background: #1a8a5d; 
+            border: 15px solid #4a2508;
+            border-radius: 15px;
+            cursor: crosshair;
+            display: block;
+            margin: 15px auto;
+            max-width: 100%;
+            height: auto;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.4), 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .stat-bar { display: flex; justify-content: space-around; margin-bottom: 15px; gap: 10px; align-items: center; }
+        .stat { 
+            background: #0f4c3a; 
+            color: white; 
+            padding: 10px 15px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 0.9rem;
+            box-shadow: 0 4px 0 #082d22;
+            min-width: 80px;
+        }
+        .lives-container {
+            display: flex;
+            gap: 5px;
+            background: #0f4c3a;
+            padding: 8px 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 0 #082d22;
+        }
+        .heart { font-size: 1.2rem; filter: grayscale(1); transition: filter 0.3s ease; opacity: 0.3; }
+        .heart.active { filter: grayscale(0); opacity: 1; transform: scale(1.1); }
+
+        button {
+            background: #c41e3a;
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+            box-shadow: 0 5px 0 #8b1429;
+        }
+        button:active { transform: translateY(3px); box-shadow: 0 2px 0 #8b1429; }
+        
+        .hidden { display: none !important; }
+        #powerMeter {
+            width: 250px; height: 18px; background: #ddd; border-radius: 20px;
+            margin: 10px auto; border: 3px solid #333; overflow: hidden;
+        }
+        #powerFill { height: 100%; width: 0%; background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336); }
+        
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; align-items: center;
+            justify-content: center; z-index: 100; border-radius: 22px;
+            backdrop-filter: blur(4px);
+        }
+        .modal { background: white; padding: 30px; border-radius: 20px; max-width: 85%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        #winScreen h2 { color: #c41e3a; font-size: 2.2rem; margin: 25px 0; }
+        #noBtn { background: #ff9800; transition: all 0.15s ease; position: relative; box-shadow: 0 5px 0 #e68a00; }
+        #yesBtn { background: #4caf50; box-shadow: 0 5px 0 #388e3c; }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <!-- Start Screen -->
+        <div id="startScreen">
+            <h1>🎱 Our Memory Pool 💕</h1>
+            <div class="info">Sink only the balls that represent our special moments! You have 2 lives.</div>
+            <div class="target-list"><div id="targetListDisplay"></div></div>
+            <button onclick="startGame()">Play Game 🎱</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="hidden">
+            <div class="stat-bar">
+                <div class="stat">🎯 <span id="shotsCount">15</span></div>
+                <div class="stat">⏱️ <span id="timerCount">90</span>s</div>
+                <div class="stat">✅ <span id="progressCount">0/7</span></div>
+                <div class="lives-container">
+                    <span class="heart active" id="heart1">❤️</span>
+                    <span class="heart active" id="heart2">❤️</span>
+                </div>
+            </div>
+            <canvas id="gameCanvas" width="700" height="400"></canvas>
+            <div id="powerMeter"><div id="powerFill"></div></div>
+            <div id="targetListGame" style="margin-top: 10px;"></div>
+        </div>
+
+        <!-- Win Screen -->
+        <div id="winScreen" class="hidden">
+            <h1 style="font-size: 2.5rem; color: #c41e3a;">Perfect Game! 💖</h1>
+            <p style="font-size: 1.2rem;">You remembered every single detail of us.</p>
+            <h2>Will you be my Valentine?</h2>
+            <div id="buttonArea" style="height: 180px; display: flex; justify-content: center; align-items: center; gap: 30px;">
+                <button id="yesBtn" onclick="celebrate()">YES! 💕</button>
+                <button id="noBtn" onmouseover="dodge()" onclick="dodge()">No...</button>
+            </div>
+        </div>
+
+        <!-- Final Screen -->
+        <div id="celebrationScreen" class="hidden">
+            <h1 style="font-size: 3.5rem;">🎉 💕 🌹</h1>
+            <h1 style="color: #c41e3a; font-size: 2.5rem;">Love you Bubu!</h1>
+            <p style="font-size: 1.3rem; margin-top: 15px;">I can't wait to spend the 14th with you 💕 .</p>
+        </div>
+
+        <!-- Lose Overlay -->
+        <div id="overlay" class="hidden">
+            <div class="modal">
+                <h2 style="color: #c41e3a; font-size: 1.8rem;">Oops!</h2>
+                <p id="loseMsg" style="margin: 20px 0; font-size: 1.1rem;"></p>
+                <button onclick="resetGame()">Try Again 🎱</button>
+                <button style="background: #2196f3; box-shadow: 0 5px 0 #1976d2;" onclick="forceWin()">I give up, just ask! 💕</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MEMORIES = ["Paddock Lounge", "AM PM", "LBS", "Siciliana", "Lyla", "Avartana", "Chota Paneer"];
+        const DECOYS = ["Hopipola", "Romania", "Peshawari", "Nutcase"];
+        const COLORS = ['#f44336', '#2196f3', '#ffeb3b', '#9c27b0', '#ff9800', '#4caf50', '#795548'];
+
+        let canvas, ctx, balls = [], cue, timer;
+        let shots = 15, time = 180, sunkCount = 0, lives = 2, isMoving = false, isCharging = false, power = 0;
+        let active = false, gameEnded = false, animationId = null;
+        let mouseX = 0, mouseY = 0;
+
+        const BALL_RADIUS = 22;
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            initCanvas();
+            resetGame();
+        }
+
+        function initCanvas() {
+            if (canvas) return; 
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            const listHtml = MEMORIES.map(m => `<span class="target-item" id="list-${m.replace(/\s/g, '')}">${m}</span>`).join('');
+            document.getElementById('targetListDisplay').innerHTML = listHtml;
+            document.getElementById('targetListGame').innerHTML = listHtml;
+
+            canvas.addEventListener('mousemove', e => {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+                mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+            });
+            
+            canvas.addEventListener('mousedown', () => { if(!isMoving && active && !gameEnded) isCharging = true; });
+            window.addEventListener('mouseup', () => {
+                if(isCharging && !gameEnded) {
+                    let dx = mouseX - cue.x, dy = mouseY - cue.y, angle = Math.atan2(dy, dx);
+                    cue.vx = -Math.cos(angle) * Math.max(power, 5);
+                    cue.vy = -Math.sin(angle) * Math.max(power, 5);
+                    shots--; updateUI();
+                    if(shots <= 0) {
+                        setTimeout(() => { if(!isMoving && !gameEnded) endGame("Out of shots! 🎯"); }, 2000);
+                    }
+                }
+                isCharging = false; power = 0; 
+                if(document.getElementById('powerFill')) document.getElementById('powerFill').style.width = '0%';
+            });
+        }
+
+        function resetGame() {
+            gameEnded = false; 
+            active = true; 
+            shots = 15; 
+            time = 120; 
+            sunkCount = 0; 
+            lives = 2;
+            balls = [];
+            
+            document.getElementById('overlay').classList.add('hidden');
+            document.getElementById('winScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+
+            MEMORIES.forEach(m => {
+                const el = document.getElementById(`list-${m.replace(/\s/g, '')}`);
+                if(el) el.classList.remove('sunk');
+            });
+
+            cue = { x: 180, y: 200, vx: 0, vy: 0, r: BALL_RADIUS, color: '#ffffff', isCue: true, alive: true };
+            balls.push(cue);
+
+            let all = [
+                ...MEMORIES.map((n, i) => ({ n, c: COLORS[i % COLORS.length], imp: true })),
+                ...DECOYS.map(n => ({ n, c: '#333333', imp: false }))
+            ].sort(() => Math.random() - 0.5);
+
+            let startX = 420, startY = 200, row = 0, col = 0, limit = 1;
+            all.forEach(data => {
+                balls.push({ 
+                    x: startX + (row * (BALL_RADIUS * 2 + 2)), 
+                    y: startY + (col * (BALL_RADIUS * 2 + 4)) - (row * (BALL_RADIUS + 2)), 
+                    vx: 0, vy: 0, r: BALL_RADIUS, color: data.c, text: data.n, imp: data.imp, alive: true 
+                });
+                col++; if(col >= limit) { col = 0; row++; limit++; }
+            });
+
+            updateUI();
+            clearInterval(timer);
+            timer = setInterval(() => { if(active && !gameEnded) { time--; updateUI(); if(time <= 0) endGame("Time's up! ⏰"); } }, 1000);
+            
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            document.getElementById('shotsCount').innerText = shots;
+            document.getElementById('timerCount').innerText = time;
+            document.getElementById('progressCount').innerText = `${sunkCount}/${MEMORIES.length}`;
+            
+            // Update Hearts
+            document.getElementById('heart1').classList.toggle('active', lives >= 1);
+            document.getElementById('heart2').classList.toggle('active', lives >= 2);
+        }
+
+        function drawBall(b) {
+            ctx.beginPath();
+            ctx.ellipse(b.x + 4, b.y + 4, b.r, b.r * 0.8, 0, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.fill();
+
+            let grad = ctx.createRadialGradient(b.x - b.r/3, b.y - b.r/3, b.r/10, b.x, b.y, b.r);
+            grad.addColorStop(0, b.isCue ? '#fff' : b.color);
+            grad.addColorStop(1, b.isCue ? '#ddd' : '#000');
+            
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.strokeStyle = "rgba(0,0,0,0.5)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.ellipse(b.x - b.r/2.5, b.y - b.r/2.5, b.r/3, b.r/5, Math.PI/4, 0, Math.PI*2);
+            ctx.fillStyle = "rgba(255,255,255,0.4)";
+            ctx.fill();
+
+            if(b.text) {
+                ctx.fillStyle = "white";
+                ctx.font = "bold 10px Arial";
+                ctx.textAlign = "center";
+                ctx.shadowColor = "black";
+                ctx.shadowBlur = 2;
+                let words = b.text.split(' ');
+                if(words.length > 1) {
+                    ctx.fillText(words[0], b.x, b.y - 1);
+                    ctx.fillText(words[1], b.x, b.y + 11);
+                } else {
+                    ctx.fillText(b.text, b.x, b.y + 5);
+                }
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function gameLoop() {
+            if(!active && !gameEnded) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#1a8a5d';
+            ctx.fillRect(0,0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#050505';
+            [[22,22], [350,15], [678,22], [22,378], [350,385], [678,378]].forEach(p => {
+                let grad = ctx.createRadialGradient(p[0], p[1], 5, p[0], p[1], 28);
+                grad.addColorStop(0, '#000');
+                grad.addColorStop(1, '#222');
+                ctx.beginPath(); ctx.arc(p[0], p[1], 28, 0, Math.PI*2); ctx.fillStyle = grad; ctx.fill();
+            });
+
+            isMoving = false;
+            balls.forEach(b => {
+                if(!b.alive) return;
+                b.x += b.vx; b.y += b.vy; b.vx *= 0.988; b.vy *= 0.988;
+                if(Math.abs(b.vx) < 0.15) b.vx = 0; if(Math.abs(b.vy) < 0.15) b.vy = 0;
+                if(b.vx !== 0 || b.vy !== 0) isMoving = true;
+
+                if(b.x < b.r || b.x > canvas.width - b.r) { b.vx *= -0.7; b.x = b.x < b.r ? b.r : canvas.width - b.r; }
+                if(b.y < b.r || b.y > canvas.height - b.r) { b.vy *= -0.7; b.y = b.y < b.r ? b.r : canvas.height - b.r; }
+
+                [[22,22], [350,15], [678,22], [22,378], [350,385], [678,378]].forEach(p => {
+                    if(Math.hypot(b.x - p[0], b.y - p[1]) < 28) {
+                        if(b.isCue) { 
+                            b.x = 180; b.y = 200; b.vx = 0; b.vy = 0; 
+                        } else { 
+                            b.alive = false; handleSink(b); 
+                        }
+                    }
+                });
+                drawBall(b);
+            });
+
+            for(let i=0; i<balls.length; i++) {
+                for(let j=i+1; j<balls.length; j++) {
+                    let b1 = balls[i], b2 = balls[j];
+                    if(!b1.alive || !b2.alive) continue;
+                    let dist = Math.hypot(b2.x - b1.x, b2.y - b1.y);
+                    if(dist < b1.r + b2.r) {
+                        let angle = Math.atan2(b2.y - b1.y, b2.x - b1.x);
+                        let v1 = b1.vx * Math.cos(angle) + b1.vy * Math.sin(angle);
+                        let v2 = b2.vx * Math.cos(angle) + b2.vy * Math.sin(angle);
+                        b1.vx += (v2 - v1) * Math.cos(angle); b1.vy += (v2 - v1) * Math.sin(angle);
+                        b2.vx += (v1 - v2) * Math.cos(angle); b2.vy += (v1 - v2) * Math.sin(angle);
+                        let off = (b1.r + b2.r - dist) / 2;
+                        b1.x -= (off + 0.1) * Math.cos(angle); b1.y -= (off + 0.1) * Math.sin(angle);
+                        b2.x += (off + 0.1) * Math.cos(angle); b2.y += (off + 0.1) * Math.sin(angle);
+                    }
+                }
+            }
+
+            if(!isMoving && !isCharging && !gameEnded) {
+                let dx = mouseX - cue.x, dy = mouseY - cue.y, a = Math.atan2(dy, dx);
+                ctx.lineCap = "round";
+                ctx.shadowBlur = 5; ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.strokeStyle = "#d7ccc8"; ctx.lineWidth = 6; ctx.beginPath();
+                ctx.moveTo(cue.x - Math.cos(a)*35, cue.y - Math.sin(a)*35);
+                ctx.lineTo(cue.x - Math.cos(a)*200, cue.y - Math.sin(a)*200); ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+            if(isCharging) {
+                power = Math.min(power + 0.25, 20);
+                document.getElementById('powerFill').style.width = (power/20*100) + '%';
+            }
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function handleSink(ball) {
+            if(gameEnded) return;
+            if(ball.imp) {
+                sunkCount++;
+                const item = document.getElementById(`list-${ball.text.replace(/\s/g, '')}`);
+                if(item) item.classList.add('sunk');
+                updateUI();
+                if(sunkCount >= MEMORIES.length) endGame("Win");
+            } else {
+                lives--;
+                updateUI();
+                if(lives <= 0) {
+                    endGame(`No lives left! "${ball.text}" wasn't a special memory. 💔`);
+                }
+            }
+        }
+
+        function endGame(reason) {
+            if (gameEnded) return;
+            gameEnded = true; 
+            active = false;
+            clearInterval(timer);
+            
+            if(reason === "Win") {
+                document.getElementById('gameScreen').classList.add('hidden');
+                document.getElementById('winScreen').classList.remove('hidden');
+                document.getElementById('overlay').classList.add('hidden');
+            } else {
+                document.getElementById('loseMsg').innerText = reason;
+                document.getElementById('overlay').classList.remove('hidden');
+            }
+        }
+
+        function forceWin() { 
+            gameEnded = false; 
+            endGame("Win"); 
+        }
+
+        function celebrate() { 
+            document.getElementById('winScreen').classList.add('hidden'); 
+            document.getElementById('celebrationScreen').classList.remove('hidden'); 
+        }
+
+        let dodgeCount = 0;
+        function dodge() {
+            const btn = document.getElementById('noBtn');
+            const yes = document.getElementById('yesBtn');
+            dodgeCount++;
+            btn.style.position = 'fixed';
+            btn.style.top = (Math.random() * 60 + 20) + '%';
+            btn.style.left = (Math.random() * 60 + 20) + '%';
+            yes.style.transform = `scale(${1 + dodgeCount * 0.45})`;
+            btn.style.transform = `scale(${Math.max(0.2, 1 - dodgeCount * 0.12)})`;
+            const msgs = ["No", "Rethink that!", "Nope!", "Try Again", "Nice try", "Wrong button!", "Oops!", "Error 404"];
+            btn.innerText = msgs[dodgeCount % msgs.length];
+            if(dodgeCount > 10) btn.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
