@@ -1,254 +1,436 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Will You Be My Valentine? 💕</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Will You Be My Valentine? 💕</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            touch-action: none; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at center, #1a5c4a 0%, #0a2e24 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow: hidden;
+            position: fixed; /* Prevent pull-to-refresh */
+            width: 100%;
+        }
+        #container {
+            background: #fffafa;
+            padding: 20px;
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            max-width: 850px;
+            width: 100%;
+            text-align: center;
+            border: 6px solid #5d2e0c;
+            position: relative;
+        }
+        h1 { color: #c41e3a; margin-bottom: 8px; font-size: 1.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .info {
+            background: #f0fff0;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #2e7d32;
+            font-size: 0.9rem;
+            color: #1b5e20;
+        }
+        .target-list {
+            background: #fff9c4;
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #fbc02d;
+        }
+        .target-item {
+            display: inline-block;
+            background: white;
+            padding: 5px 12px;
+            margin: 3px;
+            border-radius: 20px;
+            border: 2px solid #0f4c3a;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .target-item.sunk {
+            background: #c8e6c9;
+            border-color: #4caf50;
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        #gameCanvas {
+            background: #1a8a5d; 
+            border: 10px solid #4a2508;
+            border-radius: 12px;
+            display: block;
+            margin: 10px auto;
+            max-width: 100%;
+            height: auto;
+            touch-action: none;
+        }
+        .stat-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+            gap: 5px; 
+        }
+        .stat { 
+            background: #0f4c3a; 
+            color: white; 
+            padding: 8px 10px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 0.8rem;
+            flex: 1;
+        }
+        .lives-container {
+            display: flex;
+            gap: 4px;
+            background: #0f4c3a;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+        .heart { font-size: 1rem; filter: grayscale(1); opacity: 0.3; }
+        .heart.active { filter: grayscale(0); opacity: 1; transform: scale(1.1); }
 
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body{
-    font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-    background: radial-gradient(circle at center,#1a5c4a 0%,#0a2e24 100%);
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:10px;
-    overflow:hidden;
-}
-
-#container{
-    background:#fffafa;
-    padding:20px;
-    border-radius:25px;
-    box-shadow:0 30px 80px rgba(0,0,0,.6);
-    max-width:850px;
-    width:100%;
-    text-align:center;
-    border:8px solid #5d2e0c;
-    position:relative;
-}
-
-h1{color:#c41e3a;margin-bottom:10px;font-size:1.8rem;}
-
-#gameCanvas{
-    background:#1a8a5d;
-    border:12px solid #4a2508;
-    border-radius:15px;
-    display:block;
-    margin:15px auto;
-    width:100%;
-    max-width:700px;
-    height:auto;
-    touch-action:none; /* IMPORTANT */
-}
-
-.stat-bar{
-    display:flex;
-    justify-content:space-around;
-    margin-bottom:12px;
-    gap:6px;
-}
-
-.stat{
-    background:#0f4c3a;
-    color:white;
-    padding:8px 12px;
-    border-radius:10px;
-    font-weight:bold;
-    font-size:.9rem;
-}
-
-button{
-    background:#c41e3a;
-    color:white;
-    border:none;
-    padding:12px 28px;
-    font-size:1.05rem;
-    border-radius:40px;
-    cursor:pointer;
-    font-weight:bold;
-    margin:8px;
-}
-
-.hidden{display:none!important;}
-
-#powerMeter{
-    width:240px;height:16px;background:#ddd;border-radius:20px;
-    margin:8px auto;border:3px solid #333;overflow:hidden;
-}
-#powerFill{height:100%;width:0%;background:linear-gradient(90deg,#4caf50,#ffeb3b,#f44336);}
-
-#overlay{
-    position:absolute;top:0;left:0;width:100%;height:100%;
-    background:rgba(0,0,0,.85);
-    display:flex;align-items:center;justify-content:center;
-    border-radius:22px;
-}
-
-.modal{
-    background:white;padding:25px;border-radius:20px;
-    max-width:85%;
-}
-
-#noBtn{background:#ff9800;position:absolute;}
-#yesBtn{background:#4caf50;}
-
-@media(max-width:600px){
-    h1{font-size:1.4rem;}
-    .stat{font-size:.75rem;}
-    button{font-size:.95rem;}
-}
-</style>
+        button {
+            background: #c41e3a;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #8b1429;
+        }
+        
+        #powerMeter {
+            width: 80%; height: 15px; background: #ddd; border-radius: 20px;
+            margin: 10px auto; border: 2px solid #333; overflow: hidden;
+        }
+        #powerFill { height: 100%; width: 0%; background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336); }
+        
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; align-items: center;
+            justify-content: center; z-index: 100; border-radius: 22px;
+            backdrop-filter: blur(4px);
+        }
+        .modal { background: white; padding: 25px; border-radius: 20px; width: 90%; }
+        
+        .hidden { display: none !important; }
+    </style>
 </head>
-
 <body>
 
-<div id="container">
+    <div id="container">
+        <!-- Start Screen -->
+        <div id="startScreen">
+            <h1>🎱 Our Memory Pool 💕</h1>
+            <div class="info">Sink only the balls that represent our special moments! You have 2 lives.</div>
+            <div class="target-list"><div id="targetListDisplay"></div></div>
+            <button onclick="startGame()">Start Game</button>
+        </div>
 
-<div id="startScreen">
-<h1>🎱 Our Memory Pool 💕</h1>
-<button onclick="startGame()">Play Game 🎱</button>
-</div>
+        <!-- Game Screen -->
+        <div id="gameScreen" class="hidden">
+            <div class="stat-bar">
+                <div class="stat">🎯 <span id="shotsCount">15</span></div>
+                <div class="stat">⏱️ <span id="timerCount">120</span>s</div>
+                <div class="stat">✅ <span id="progressCount">0/7</span></div>
+                <div class="lives-container">
+                    <span class="heart active" id="heart1">❤️</span>
+                    <span class="heart active" id="heart2">❤️</span>
+                </div>
+            </div>
+            <canvas id="gameCanvas" width="700" height="400"></canvas>
+            <div id="powerMeter"><div id="powerFill"></div></div>
+            <div id="targetListGame"></div>
+        </div>
 
-<div id="gameScreen" class="hidden">
-<div class="stat-bar">
-<div class="stat">🎯 <span id="shotsCount">15</span></div>
-<div class="stat">⏱️ <span id="timerCount">120</span>s</div>
-<div class="stat">✅ <span id="progressCount">0/7</span></div>
-</div>
+        <!-- Win Screen -->
+        <div id="winScreen" class="hidden">
+            <h1 style="color: #c41e3a;">Perfect Game! 💖</h1>
+            <p>You remembered every single detail of us.</p>
+            <h2 style="margin: 20px 0;">Will you be my Valentine?</h2>
+            <div id="buttonArea" style="height: 150px; position: relative; display: flex; justify-content: center; align-items: center; gap: 20px;">
+                <button id="yesBtn" onclick="celebrate()">YES! 💕</button>
+                <button id="noBtn" onclick="dodge()" ontouchstart="dodge()">No...</button>
+            </div>
+        </div>
 
-<canvas id="gameCanvas"></canvas>
-<div id="powerMeter"><div id="powerFill"></div></div>
-</div>
+        <!-- Final Screen -->
+        <div id="celebrationScreen" class="hidden">
+            <h1 style="font-size: 3rem;">🎉 💕 🌹</h1>
+            <h1 style="color: #c41e3a;">Love you Bubu!</h1>
+            <p style="margin-top: 15px;">I can't wait for our Valentine's Day!</p>
+        </div>
 
-<div id="winScreen" class="hidden">
-<h1>Perfect Game! 💖</h1>
-<h2>Will you be my Valentine?</h2>
+        <!-- Lose Overlay -->
+        <div id="overlay" class="hidden">
+            <div class="modal">
+                <h2 style="color: #c41e3a;">Oops!</h2>
+                <p id="loseMsg" style="margin: 15px 0;"></p>
+                <button onclick="resetGame()">Try Again</button>
+                <button style="background: #2196f3; box-shadow: 0 4px 0 #1976d2; margin-top: 10px;" onclick="forceWin()">Just ask me! 💕</button>
+            </div>
+        </div>
+    </div>
 
-<div style="height:160px;position:relative;">
-<button id="yesBtn" onclick="celebrate()">YES! 💕</button>
-<button id="noBtn" onmouseover="dodge()" onclick="dodge()">No...</button>
-</div>
-</div>
+    <script>
+        const MEMORIES = ["Paddock Lounge", "AM PM", "LBS", "Siciliana", "Lyla", "Avartana", "Chota Paneer"];
+        const DECOYS = ["Hopipola", "Romania", "Peshawari", "Nutcase"];
+        const COLORS = ['#f44336', '#2196f3', '#ffeb3b', '#9c27b0', '#ff9800', '#4caf50', '#795548'];
 
-<div id="celebrationScreen" class="hidden">
-<h1 style="font-size:3rem;">🎉 💕 🌹</h1>
-<h1 style="color:#c41e3a;">Love you Bubu!</h1>
-</div>
+        let canvas, ctx, balls = [], cue, timer;
+        let shots = 15, time = 120, sunkCount = 0, lives = 2, isMoving = false, isCharging = false, power = 0;
+        let active = false, gameEnded = false, animationId = null;
+        let mouseX = 0, mouseY = 0;
 
-<div id="overlay" class="hidden">
-<div class="modal">
-<h2>Oops!</h2>
-<p id="loseMsg"></p>
-<button onclick="resetGame()">Try Again</button>
-</div>
-</div>
+        const BALL_RADIUS = 20;
 
-</div>
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            initCanvas();
+            resetGame();
+        }
 
-<script>
+        function getPointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
 
-const MEMORIES=["Paddock Lounge","AM PM","LBS","Siciliana","Lyla","Avartana","Chota Paneer"];
-const DECOYS=["Hopipola","Romania","Peshawari","Nutcase"];
-const COLORS=['#f44336','#2196f3','#ffeb3b','#9c27b0','#ff9800','#4caf50','#795548'];
+        function initCanvas() {
+            if (canvas) return; 
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            const listHtml = MEMORIES.map(m => `<span class="target-item" id="list-${m.replace(/\s/g, '')}">${m}</span>`).join('');
+            document.getElementById('targetListDisplay').innerHTML = listHtml;
+            document.getElementById('targetListGame').innerHTML = listHtml;
 
-let canvas,ctx,balls=[],cue,timer;
-let shots=15,time=120,sunkCount=0,lives=2;
-let isMoving=false,isCharging=false,power=0;
-let active=false,gameEnded=false;
-let mouseX=0,mouseY=0;
+            // Unified input handlers
+            const startCharge = (e) => {
+                if(!isMoving && active && !gameEnded) {
+                    isCharging = true;
+                    const pos = getPointerPos(e);
+                    mouseX = pos.x;
+                    mouseY = pos.y;
+                }
+            };
 
-const BALL_RADIUS=22;
+            const movePointer = (e) => {
+                const pos = getPointerPos(e);
+                mouseX = pos.x;
+                mouseY = pos.y;
+            };
 
-function startGame(){
-document.getElementById('startScreen').classList.add('hidden');
-document.getElementById('gameScreen').classList.remove('hidden');
-initCanvas();
-resetGame();
-}
+            const endCharge = () => {
+                if(isCharging && !gameEnded) {
+                    let dx = mouseX - cue.x, dy = mouseY - cue.y, angle = Math.atan2(dy, dx);
+                    cue.vx = -Math.cos(angle) * Math.max(power, 5);
+                    cue.vy = -Math.sin(angle) * Math.max(power, 5);
+                    shots--; updateUI();
+                    if(shots <= 0) {
+                        setTimeout(() => { if(!isMoving && !gameEnded) endGame("Out of shots! 🎯"); }, 2000);
+                    }
+                }
+                isCharging = false; power = 0; 
+                document.getElementById('powerFill').style.width = '0%';
+            };
 
-function initCanvas(){
+            canvas.addEventListener('mousedown', startCharge);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startCharge(e); }, {passive: false});
+            
+            window.addEventListener('mousemove', movePointer);
+            window.addEventListener('touchmove', (e) => { movePointer(e); }, {passive: false});
+            
+            window.addEventListener('mouseup', endCharge);
+            window.addEventListener('touchend', endCharge);
+        }
 
-canvas=document.getElementById('gameCanvas');
-ctx=canvas.getContext('2d');
+        function resetGame() {
+            gameEnded = false; active = true; shots = 15; time = 120; sunkCount = 0; lives = 2; balls = [];
+            document.getElementById('overlay').classList.add('hidden');
+            document.getElementById('winScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
 
-resizeCanvas();
-window.addEventListener('resize',resizeCanvas);
+            MEMORIES.forEach(m => {
+                const el = document.getElementById(`list-${m.replace(/\s/g, '')}`);
+                if(el) el.classList.remove('sunk');
+            });
 
-/* TOUCH + MOUSE unified */
-function getPos(e){
-const rect=canvas.getBoundingClientRect();
-const touch=e.touches?e.touches[0]:e;
-return{
-x:(touch.clientX-rect.left)*(canvas.width/rect.width),
-y:(touch.clientY-rect.top)*(canvas.height/rect.height)
-};
-}
+            cue = { x: 180, y: 200, vx: 0, vy: 0, r: BALL_RADIUS, color: '#ffffff', isCue: true, alive: true };
+            balls.push(cue);
 
-canvas.addEventListener('mousemove',e=>{
-let p=getPos(e);mouseX=p.x;mouseY=p.y;
-});
+            let all = [...MEMORIES.map((n, i) => ({ n, c: COLORS[i % COLORS.length], imp: true })),
+                       ...DECOYS.map(n => ({ n, c: '#333333', imp: false }))].sort(() => Math.random() - 0.5);
 
-canvas.addEventListener('touchmove',e=>{
-e.preventDefault();
-let p=getPos(e);mouseX=p.x;mouseY=p.y;
-},{passive:false});
+            let startX = 450, startY = 200, row = 0, col = 0, limit = 1;
+            all.forEach(data => {
+                balls.push({ 
+                    x: startX + (row * (BALL_RADIUS * 2 + 2)), 
+                    y: startY + (col * (BALL_RADIUS * 2 + 4)) - (row * (BALL_RADIUS + 2)), 
+                    vx: 0, vy: 0, r: BALL_RADIUS, color: data.c, text: data.n, imp: data.imp, alive: true 
+                });
+                col++; if(col >= limit) { col = 0; row++; limit++; }
+            });
 
-canvas.addEventListener('mousedown',()=>{if(!isMoving)isCharging=true;});
-canvas.addEventListener('touchstart',e=>{
-e.preventDefault();
-if(!isMoving)isCharging=true;
-},{passive:false});
+            updateUI();
+            clearInterval(timer);
+            timer = setInterval(() => { if(active && !gameEnded) { time--; updateUI(); if(time <= 0) endGame("Time's up! ⏰"); } }, 1000);
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(gameLoop);
+        }
 
-window.addEventListener('mouseup',shoot);
-window.addEventListener('touchend',shoot);
-}
+        function updateUI() {
+            document.getElementById('shotsCount').innerText = shots;
+            document.getElementById('timerCount').innerText = time;
+            document.getElementById('progressCount').innerText = `${sunkCount}/${MEMORIES.length}`;
+            document.getElementById('heart1').classList.toggle('active', lives >= 1);
+            document.getElementById('heart2').classList.toggle('active', lives >= 2);
+        }
 
-function resizeCanvas(){
-const rect=canvas.getBoundingClientRect();
-const dpr=window.devicePixelRatio||1;
+        function drawBall(b) {
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            let grad = ctx.createRadialGradient(b.x - b.r/3, b.y - b.r/3, b.r/10, b.x, b.y, b.r);
+            grad.addColorStop(0, b.isCue ? '#fff' : b.color);
+            grad.addColorStop(1, b.isCue ? '#ccc' : '#000');
+            ctx.fillStyle = grad;
+            ctx.fill();
+            if(b.text) {
+                ctx.fillStyle = "white";
+                ctx.font = "bold 9px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(b.text.split(' ')[0], b.x, b.y + 3);
+            }
+        }
 
-canvas.width=rect.width*dpr;
-canvas.height=(rect.width*0.57)*dpr;
+        function gameLoop() {
+            if(!active && !gameEnded) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#1a8a5d';
+            ctx.fillRect(0,0, canvas.width, canvas.height);
 
-ctx.setTransform(1,0,0,1,0,0);
-ctx.scale(dpr,dpr);
-}
+            // Pockets
+            ctx.fillStyle = '#050505';
+            [[20,20], [350,15], [680,20], [20,380], [350,385], [680,380]].forEach(p => {
+                ctx.beginPath(); ctx.arc(p[0], p[1], 28, 0, Math.PI*2); ctx.fill();
+            });
 
-function shoot(){
-if(isCharging){
-let dx=mouseX-cue.x;
-let dy=mouseY-cue.y;
-let angle=Math.atan2(dy,dx);
+            isMoving = false;
+            balls.forEach(b => {
+                if(!b.alive) return;
+                b.x += b.vx; b.y += b.vy; b.vx *= 0.99; b.vy *= 0.99;
+                if(Math.abs(b.vx) < 0.1) b.vx = 0; if(Math.abs(b.vy) < 0.1) b.vy = 0;
+                if(b.vx !== 0 || b.vy !== 0) isMoving = true;
 
-cue.vx=-Math.cos(angle)*Math.max(power,5);
-cue.vy=-Math.sin(angle)*Math.max(power,5);
+                if(b.x < b.r || b.x > canvas.width - b.r) { b.vx *= -0.7; b.x = b.x < b.r ? b.r : canvas.width - b.r; }
+                if(b.y < b.r || b.y > canvas.height - b.r) { b.vy *= -0.7; b.y = b.y < b.r ? b.r : canvas.height - b.r; }
 
-shots--;
-updateUI();
-}
-isCharging=false;
-power=0;
-document.getElementById('powerFill').style.width='0%';
-}
+                [[20,20], [350,15], [680,20], [20,380], [350,385], [680,380]].forEach(p => {
+                    if(Math.hypot(b.x - p[0], b.y - p[1]) < 28) {
+                        if(b.isCue) { b.x = 180; b.y = 200; b.vx = 0; b.vy = 0; }
+                        else { b.alive = false; handleSink(b); }
+                    }
+                });
+                drawBall(b);
+            });
 
-function resetGame(){
+            // Collisions
+            for(let i=0; i<balls.length; i++) {
+                for(let j=i+1; j<balls.length; j++) {
+                    let b1 = balls[i], b2 = balls[j];
+                    if(!b1.alive || !b2.alive) continue;
+                    let dist = Math.hypot(b2.x - b1.x, b2.y - b1.y);
+                    if(dist < b1.r + b2.r) {
+                        let angle = Math.atan2(b2.y - b1.y, b2.x - b1.x);
+                        let v1 = b1.vx * Math.cos(angle) + b1.vy * Math.sin(angle);
+                        let v2 = b2.vx * Math.cos(angle) + b2.vy * Math.sin(angle);
+                        b1.vx += (v2 - v1) * Math.cos(angle); b1.vy += (v2 - v1) * Math.sin(angle);
+                        b2.vx += (v1 - v2) * Math.cos(angle); b2.vy += (v1 - v2) * Math.sin(angle);
+                        let off = (b1.r + b2.r - dist) / 2;
+                        b1.x -= (off + 0.1) * Math.cos(angle); b1.y -= (off + 0.1) * Math.sin(angle);
+                        b2.x += (off + 0.1) * Math.cos(angle); b2.y += (off + 0.1) * Math.sin(angle);
+                    }
+                }
+            }
 
-active=true;
-gameEnded=false;
-shots=15;
-time=120;
-sunkCount=0;
-balls=[];
+            if(!isMoving && !gameEnded) {
+                let dx = mouseX - cue.x, dy = mouseY - cue.y, a = Math.atan2(dy, dx);
+                ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.setLineDash([5, 5]); ctx.beginPath();
+                ctx.moveTo(cue.x, cue.y); ctx.lineTo(cue.x - Math.cos(a)*100, cue.y - Math.sin(a)*100); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.strokeStyle = "#d7ccc8"; ctx.lineWidth = 6; ctx.beginPath();
+                ctx.moveTo(cue.x + Math.cos(a)*30, cue.y + Math.sin(a)*30);
+                ctx.lineTo(cue.x + Math.cos(a)*150, cue.y + Math.sin(a)*150); ctx.stroke();
+            }
+            if(isCharging) {
+                power = Math.min(power + 0.3, 20);
+                document.getElementById('powerFill').style.width = (power/20*100) + '%';
+            }
+            animationId = requestAnimationFrame(gameLoop);
+        }
 
-cue={x:180,y:200,vx:0,vy:0,r:BALL_RADIUS,isCue:true,alive:true};
-balls.push(cue);
+        function handleSink(ball) {
+            if(gameEnded) return;
+            if(ball.imp) {
+                sunkCount++;
+                const item = document.getElementById(`list-${ball.text.replace(/\s/g, '')}`);
+                if(item) item.classList.add('sunk');
+                updateUI();
+                if(sunkCount >= MEMORIES.length) endGame("Win");
+            } else {
+                lives--; updateUI();
+                if(lives <= 0) endGame(`"${ball.text}" wasn't our memory! 💔`);
+            }
+        }
 
-let all=[
-...MEMORIES.map((n,i)=>({n,c:COLORS[i%COLORS.length],imp:true})),
-...DECOYS.map(n=>({n,c:'#333',imp:false}))
-].sort(()=>Math.random()-0.5);
+        function endGame(reason) {
+            if (gameEnded) return;
+            gameEnded = true; active = false; clearInterval(timer);
+            if(reason === "Win") {
+                document.getElementById('gameScreen').classList.add('hidden');
+                document.getElementById('winScreen').classList.remove('hidden');
+            } else {
+                document.getElementById('loseMsg').innerText = reason;
+                document.getElementById('overlay').classList.remove('hidden');
+            }
+        }
 
-let startX=420,startY=200,row=0,co
+        function forceWin() { gameEnded = false; endGame("Win"); }
+        function celebrate() { document.getElementById('winScreen').classList.add('hidden'); document.getElementById('celebrationScreen').classList.remove('hidden'); }
+
+        let dodgeCount = 0;
+        function dodge() {
+            const btn = document.getElementById('noBtn');
+            const yes = document.getElementById('yesBtn');
+            dodgeCount++;
+            btn.style.position = 'fixed';
+            btn.style.top = (Math.random() * 60 + 20) + '%';
+            btn.style.left = (Math.random() * 60 + 20) + '%';
+            yes.style.transform = `scale(${1 + dodgeCount * 0.3})`;
+            btn.style.transform = `scale(${Math.max(0.4, 1 - dodgeCount * 0.1)})`;
+            if(dodgeCount > 8) btn.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
