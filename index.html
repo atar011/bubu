@@ -3,14 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Will You Be My Valentine??💕</title>
+    <title>Will You Be My Valentine? 💕</title>
     <style>
         * { 
             margin: 0; 
             padding: 0; 
             box-sizing: border-box; 
-            touch-action: none; 
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Prevent iOS pull-to-refresh */
+        body {
+            overscroll-behavior-y: contain;
+            position: fixed;
+            overflow: hidden;
+        }
+
+        html {
+            overscroll-behavior: none;
         }
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -23,63 +36,109 @@
             overflow: hidden;
             position: fixed;
             width: 100%;
-        }
-
-        /* Landscape Force for Mobile */
-        @media screen and (max-width: 900px) and (orientation: portrait) {
-            #container {
-                transform: rotate(90deg);
-                transform-origin: center;
-                width: 90vh !important;
-                height: 90vw !important;
-                position: absolute;
-            }
-            h1 { font-size: 1.2rem !important; }
-            .info { font-size: 0.7rem !important; padding: 5px !important; }
+            height: 100%;
         }
 
         #container {
             background: #fffafa;
-            padding: 20px;
-            border-radius: 30px;
+            padding: 15px;
+            border-radius: 20px;
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-            max-width: 850px;
+            max-width: 95vw;
+            max-height: 95vh;
             width: 100%;
             text-align: center;
-            border: 6px solid #5d2e0c;
-            position: relative;
-            transition: transform 0.3s ease;
+            border: 5px solid #5d2e0c;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        h1 { color: #c41e3a; margin-bottom: 8px; font-size: 1.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        /* iPhone landscape optimizations */
+        @media screen and (max-width: 900px) and (orientation: landscape) {
+            #container {
+                max-height: 98vh;
+                padding: 8px;
+            }
+            h1 {
+                font-size: 1rem !important;
+                margin-bottom: 5px !important;
+            }
+            .info {
+                font-size: 0.7rem !important;
+                padding: 6px !important;
+                margin-bottom: 5px !important;
+            }
+            .target-list {
+                padding: 6px !important;
+                margin-bottom: 5px !important;
+            }
+            .target-item {
+                font-size: 0.65rem !important;
+                padding: 4px 8px !important;
+                margin: 2px !important;
+            }
+            .stat-bar {
+                margin-bottom: 5px !important;
+            }
+            .stat {
+                font-size: 0.7rem !important;
+                padding: 4px 8px !important;
+            }
+            #gameCanvas {
+                margin: 5px auto !important;
+                max-height: 50vh;
+            }
+            button {
+                font-size: 0.85rem !important;
+                padding: 10px 20px !important;
+            }
+            #msg {
+                font-size: 0.85rem !important;
+                margin: 5px 0 !important;
+            }
+        }
+
+        h1 { 
+            color: #c41e3a; 
+            margin-bottom: 10px; 
+            font-size: 1.3rem; 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1); 
+        }
         
         .info {
             background: #f0fff0;
-            padding: 12px;
-            border-radius: 12px;
+            padding: 10px;
+            border-radius: 10px;
             margin-bottom: 10px;
             border: 2px solid #2e7d32;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #1b5e20;
+            line-height: 1.5;
         }
 
         .target-list {
             background: #fff9c4;
             padding: 10px;
-            border-radius: 15px;
-            margin-bottom: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
             border: 2px solid #fbc02d;
+        }
+
+        .target-list h3 {
+            color: #856404;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
         }
 
         .target-item {
             display: inline-block;
             background: white;
-            padding: 5px 12px;
+            padding: 6px 12px;
             margin: 3px;
             border-radius: 20px;
             border: 2px solid #0f4c3a;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
         .target-item.sunk {
@@ -91,68 +150,159 @@
 
         #gameCanvas {
             background: #1a8a5d; 
-            border: 10px solid #4a2508;
-            border-radius: 12px;
+            border: 8px solid #4a2508;
+            border-radius: 10px;
             display: block;
-            margin: 5px auto;
-            max-width: 100%;
+            margin: 8px auto;
+            width: 100%;
+            max-width: 700px;
             height: auto;
             touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .stat-bar { 
             display: flex; 
             justify-content: space-between; 
-            margin-bottom: 5px; 
+            margin-bottom: 8px; 
             gap: 5px; 
+            flex-wrap: wrap;
         }
 
         .stat { 
             background: #0f4c3a; 
             color: white; 
-            padding: 5px 10px; 
-            border-radius: 10px; 
+            padding: 6px 10px; 
+            border-radius: 8px; 
             font-weight: bold; 
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             flex: 1;
+            min-width: 60px;
         }
 
         .lives-container {
             display: flex;
             gap: 4px;
             background: #0f4c3a;
-            padding: 5px 12px;
-            border-radius: 10px;
+            padding: 6px 12px;
+            border-radius: 8px;
         }
 
-        .heart { font-size: 1rem; filter: grayscale(1); opacity: 0.3; }
-        .heart.active { filter: grayscale(0); opacity: 1; transform: scale(1.1); }
+        .heart { 
+            font-size: 1.1rem; 
+            filter: grayscale(1); 
+            opacity: 0.3; 
+        }
+        .heart.active { 
+            filter: grayscale(0); 
+            opacity: 1; 
+            animation: heartbeat 1s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
 
         button {
-            background: #c41e3a;
+            background: linear-gradient(135deg, #c41e3a, #e63946);
             color: white;
             border: none;
-            padding: 12px 25px;
-            font-size: 1rem;
+            padding: 14px 28px;
+            font-size: 1.05rem;
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
             box-shadow: 0 4px 0 #8b1429;
+            margin: 5px;
+            transition: transform 0.1s;
+            min-width: 120px;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #8b1429;
+        }
+
+        button.green {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            box-shadow: 0 4px 0 #0d7a6f;
+        }
+
+        button.green:active {
+            box-shadow: 0 2px 0 #0d7a6f;
+        }
+
+        button.orange {
+            background: linear-gradient(135deg, #ee0979, #ff6a00);
+            box-shadow: 0 4px 0 #c0074d;
+        }
+
+        button.orange:active {
+            box-shadow: 0 2px 0 #c0074d;
+        }
+
+        button.secondary {
+            background: #6c757d;
+            box-shadow: 0 4px 0 #495057;
+            font-size: 0.9rem;
+            padding: 10px 20px;
+        }
+
+        button.secondary:active {
+            box-shadow: 0 2px 0 #495057;
         }
         
         #powerMeter {
-            width: 80%; height: 12px; background: #ddd; border-radius: 20px;
-            margin: 5px auto; border: 2px solid #333; overflow: hidden;
+            width: 90%; 
+            height: 18px; 
+            background: #ddd; 
+            border-radius: 20px;
+            margin: 8px auto; 
+            border: 3px solid #333; 
+            overflow: hidden;
         }
-        #powerFill { height: 100%; width: 0%; background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336); }
+        #powerFill { 
+            height: 100%; 
+            width: 0%; 
+            background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336);
+            transition: width 0.05s;
+        }
         
         #overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: flex; align-items: center;
-            justify-content: center; z-index: 100; border-radius: 22px;
-            backdrop-filter: blur(4px);
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0,0,0,0.9); 
+            display: flex; 
+            align-items: center;
+            justify-content: center; 
+            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
-        .modal { background: white; padding: 20px; border-radius: 20px; width: 90%; }
+
+        .modal { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            max-width: 90%; 
+            border: 5px solid #5d2e0c;
+        }
+
+        .modal h2 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .modal p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
         
         .hidden { display: none !important; }
 
@@ -163,21 +313,42 @@
             gap: 4px;
             margin-top: 5px;
         }
-        #targetListGame .target-item {
-            font-size: 0.65rem;
-            padding: 2px 8px;
+
+        #msg {
+            font-size: 1rem;
+            color: #0f4c3a;
+            font-weight: bold;
+            margin: 8px 0;
+            min-height: 30px;
+        }
+
+        /* Make canvas responsive but maintain aspect ratio */
+        @media (max-width: 768px) {
+            #gameCanvas {
+                width: 100%;
+                height: auto;
+            }
+            h1 { font-size: 1.1rem; }
+            .info { font-size: 0.75rem; }
+            button { font-size: 0.95rem; padding: 12px 24px; }
         }
     </style>
 </head>
 <body>
-
     <div id="container">
         <!-- Start Screen -->
         <div id="startScreen">
-            <h1>🎱 Our Memory Pool 1.2💕</h1>
-            <div class="info">Sink only our special moments! (Landscape recommended)</div>
-            <div class="target-list"><div id="targetListDisplay"></div></div>
-            <button onclick="startGame()">Start Game</button>
+            <h1>🎱 Memory Pool </h1>
+            <div class="info">
+                <strong>Remember our special moments?</strong><br>
+                Sink only the balls with places that are important to <strong>US</strong>! 💕<br>
+                ⚠️ Sink a wrong ball = lose a life!
+            </div>
+            <div class="target-list">
+                <h3>💕 Sink These:</h3>
+                <div id="targetListDisplay"></div>
+            </div>
+            <button onclick="startGame()">Start Game 🎱</button>
         </div>
 
         <!-- Game Screen -->
@@ -191,300 +362,525 @@
                     <span class="heart active" id="heart2">❤️</span>
                 </div>
             </div>
+            <div class="target-list">
+                <div id="targetListGame"></div>
+            </div>
             <canvas id="gameCanvas" width="700" height="400"></canvas>
-            <div id="powerMeter"><div id="powerFill"></div></div>
-            <div id="targetListGame"></div>
+            <div id="powerMeter" class="hidden">
+                <div id="powerFill"></div>
+            </div>
+            <p id="msg">Touch and hold to aim and charge power! 🎯</p>
         </div>
 
         <!-- Win Screen -->
         <div id="winScreen" class="hidden">
-            <h1 style="color: #c41e3a;">Perfect Game! 💖</h1>
-            <p>You remembered every single detail.</p>
-            <h2 style="margin: 10px 0;">Will you be my Valentine?</h2>
-            <div id="buttonArea" style="height: 100px; position: relative; display: flex; justify-content: center; align-items: center; gap: 20px;">
-                <button id="yesBtn" onclick="celebrate()">YES! 💕</button>
-                <button id="noBtn" onclick="dodge()" ontouchstart="dodge()">No...</button>
+            <h1 style="font-size: 2em;">🎱💕🎊</h1>
+            <h1>Perfect Memory!</h1>
+            <div style="font-size: 1rem; margin: 20px 0; line-height: 1.7; color: #555;">
+                You remembered all our special moments! 💕<br><br>
+                Every memory with you is precious!<br><br>
+                So here's my question...<br><br>
+                <span style="font-size: 1.5em; color: #c41e3a;">Will you be my Valentine?</span> 💘
             </div>
+            <button id="yesBtn" class="green" onclick="celebrate()">YES! 💕</button>
+            <button id="noBtn" class="orange" onclick="dodge()">No...</button>
         </div>
 
-        <!-- Final Screen -->
+        <!-- Celebration Screen -->
         <div id="celebrationScreen" class="hidden">
-            <h1 style="font-size: 2.5rem;">🎉 💕 🌹</h1>
-            <h1 style="color: #c41e3a;">Love you Bubu!</h1>
-            <p style="margin-top: 10px;">Best Valentine's ever!</p>
-        </div>
-
-        <!-- Lose Overlay -->
-        <div id="overlay" class="hidden">
-            <div class="modal">
-                <h2 style="color: #c41e3a;">Oops!</h2>
-                <p id="loseMsg" style="margin: 10px 0;"></p>
-                <button onclick="resetGame()">Try Again</button>
-                <button style="background: #2196f3; box-shadow: 0 4px 0 #1976d2; margin-top: 10px;" onclick="forceWin()">Just ask me! 💕</button>
+            <h1 style="font-size: 2.5em;">🎱💖🥳💕✨</h1>
+            <h1 style="color: #c41e3a;">YESSS!!! 🎊</h1>
+            <div style="font-size: 1.1rem; margin: 25px 0; color: #555; line-height: 1.7;">
+                You just made me the happiest person ever! 💕<br><br>
+                Can't wait for all our future adventures!<br><br>
+                Valentine's Day will be PERFECT with you! 🌹💝
             </div>
         </div>
     </div>
 
+    <!-- Game Over Overlay -->
+    <div id="overlay" class="hidden">
+        <div class="modal">
+            <h2>Oh No! 😅</h2>
+            <p id="loseMsg" style="font-size: 1rem;"></p>
+            <p style="color: #666; margin-top: 15px;">But I'd ask you anyway! 💕</p>
+            <button onclick="resetGame()">Try Again 🎱</button>
+            <button class="secondary" onclick="forceWin()">Just Ask Me 💕</button>
+        </div>
+    </div>
+
     <script>
-        const MEMORIES = ["Paddock Lounge", "AM PM", "LBS", "Siciliana", "Lyla", "Avartana", "Chota Paneer"];
-        const DECOYS = ["Hopipola", "Romania", "Peshawari", "Nutcase"];
-        const COLORS = ['#f44336', '#2196f3', '#ffeb3b', '#9c27b0', '#ff9800', '#4caf50', '#795548'];
+        // ========================================
+        // 🎱 CUSTOMIZE YOUR LISTS HERE! 🎱
+        // ========================================
+        
+        const MEMORIES = [
+            "Paddock Lounge",
+            "LBS",
+            "Siciliana",
+            "Avartana",
+            "Blue Tokai",
+            "Mehico",
+            "Social"
+        ];
 
-        let canvas, ctx, balls = [], cue, timer;
-        let shots = 15, time = 120, sunkCount = 0, lives = 2, isMoving = false, isCharging = false, power = 0;
-        let active = false, gameEnded = false, animationId = null;
+        const DECOYS = [
+            "Artily",
+            "Dance Bar",
+            "Peter Hu",
+            "HCL",
+            "Bangalore"
+        ];
+
+        // ========================================
+        // Game Code
+        // ========================================
+        const COLORS = ['#FFD700', '#0066FF', '#FF0000', '#9933FF', '#FF8800', '#00AA00', '#CC0066'];
+        const BALL_RADIUS = 14;
+
+        let canvas, ctx;
+        let balls = [], cue;
+        let active = false, gameEnded = false;
+        let shots = 15, time = 120, sunkCount = 0, lives = 2;
         let mouseX = 0, mouseY = 0;
+        let isCharging = false, power = 0, isMoving = false;
+        let timer, animationId;
+        let dodgeCount = 0;
 
-        const BALL_RADIUS = 20;
+        // Display target list
+        function displayList(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = MEMORIES.map(m => 
+                `<span class="target-item" id="list-${m.replace(/\s/g, '')}">${m}</span>`
+            ).join('');
+        }
+
+        displayList('targetListDisplay');
 
         function startGame() {
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
-            initCanvas();
-            resetGame();
-        }
-
-        function getPointerPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            // Handle rotation logic for touch coordinates if in forced landscape
-            const isPortrait = window.innerHeight > window.innerWidth && window.innerWidth < 900;
             
-            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-            if (isPortrait) {
-                // If rotated 90deg, swap and invert coordinates
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
-                let relX = clientX - centerX;
-                let relY = clientY - centerY;
-                
-                // New coordinates after 90deg rotation
-                let newX = relY + centerY;
-                let newY = -relX + centerX;
-                
-                clientX = newX;
-                clientY = newY;
-            }
-
-            return {
-                x: (clientX - rect.left) * (canvas.width / rect.width),
-                y: (clientY - rect.top) * (canvas.height / rect.height)
-            };
-        }
-
-        function initCanvas() {
-            if (canvas) return; 
             canvas = document.getElementById('gameCanvas');
             ctx = canvas.getContext('2d');
             
-            const listHtml = MEMORIES.map(m => `<span class="target-item" id="list-${m.replace(/\s/g, '')}">${m}</span>`).join('');
-            document.getElementById('targetListDisplay').innerHTML = listHtml;
-            document.getElementById('targetListGame').innerHTML = listHtml;
+            // Set canvas actual size
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = 700;
+            canvas.height = 400;
+            
+            displayList('targetListGame');
+            setupControls();
+            resetGame();
+        }
 
+        function setupControls() {
             const startCharge = (e) => {
-                if(!isMoving && active && !gameEnded) {
-                    isCharging = true;
-                    const pos = getPointerPos(e);
-                    mouseX = pos.x;
-                    mouseY = pos.y;
-                }
+                if (isMoving || gameEnded) return;
+                isCharging = true;
+                document.getElementById('powerMeter').classList.remove('hidden');
             };
 
             const movePointer = (e) => {
-                const pos = getPointerPos(e);
-                mouseX = pos.x;
-                mouseY = pos.y;
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                
+                if (e.touches) {
+                    mouseX = (e.touches[0].clientX - rect.left) * scaleX;
+                    mouseY = (e.touches[0].clientY - rect.top) * scaleY;
+                } else {
+                    mouseX = (e.clientX - rect.left) * scaleX;
+                    mouseY = (e.clientY - rect.top) * scaleY;
+                }
             };
 
             const endCharge = () => {
-                if(isCharging && !gameEnded) {
-                    let dx = mouseX - cue.x, dy = mouseY - cue.y, angle = Math.atan2(dy, dx);
-                    cue.vx = -Math.cos(angle) * Math.max(power, 5);
-                    cue.vy = -Math.sin(angle) * Math.max(power, 5);
-                    shots--; updateUI();
-                    if(shots <= 0) {
-                        setTimeout(() => { if(!isMoving && !gameEnded) endGame("Out of shots! 🎯"); }, 2000);
+                if (isCharging && !gameEnded) {
+                    let dx = mouseX - cue.x;
+                    let dy = mouseY - cue.y;
+                    let angle = Math.atan2(dy, dx);
+                    
+                    // Increased power multiplier - balls travel farther
+                    cue.vx = -Math.cos(angle) * Math.max(power * 1.3, 6);
+                    cue.vy = -Math.sin(angle) * Math.max(power * 1.3, 6);
+                    
+                    shots--;
+                    updateUI();
+                    
+                    document.getElementById('msg').textContent = 'Nice shot! 🎱';
+                    
+                    if (shots <= 0) {
+                        setTimeout(() => {
+                            if (!isMoving && !gameEnded) {
+                                endGame("Out of shots! 🎯");
+                            }
+                        }, 2000);
                     }
                 }
-                isCharging = false; power = 0; 
+                isCharging = false;
+                power = 0;
+                document.getElementById('powerMeter').classList.add('hidden');
                 document.getElementById('powerFill').style.width = '0%';
             };
 
             canvas.addEventListener('mousedown', startCharge);
-            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startCharge(e); }, {passive: false});
-            
-            window.addEventListener('mousemove', movePointer);
-            window.addEventListener('touchmove', (e) => { movePointer(e); }, {passive: false});
-            
-            window.addEventListener('mouseup', endCharge);
-            window.addEventListener('touchend', endCharge);
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startCharge(e);
+            }, { passive: false });
+
+            canvas.addEventListener('mousemove', movePointer);
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                movePointer(e);
+            }, { passive: false });
+
+            canvas.addEventListener('mouseup', endCharge);
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                endCharge();
+            }, { passive: false });
         }
 
         function resetGame() {
-            gameEnded = false; active = true; shots = 15; time = 120; sunkCount = 0; lives = 2; balls = [];
+            gameEnded = false;
+            active = true;
+            shots = 15;
+            time = 90;
+            sunkCount = 0;
+            lives = 2;
+            balls = [];
+            
             document.getElementById('overlay').classList.add('hidden');
             document.getElementById('winScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
 
+            // Reset list items
             MEMORIES.forEach(m => {
                 const el = document.getElementById(`list-${m.replace(/\s/g, '')}`);
-                if(el) el.classList.remove('sunk');
+                if (el) el.classList.remove('sunk');
             });
 
-            cue = { x: 180, y: 200, vx: 0, vy: 0, r: BALL_RADIUS, color: '#ffffff', isCue: true, alive: true };
+            // Create cue ball
+            cue = {
+                x: 180,
+                y: 200,
+                vx: 0,
+                vy: 0,
+                r: BALL_RADIUS,
+                color: '#ffffff',
+                isCue: true,
+                alive: true
+            };
             balls.push(cue);
 
-            let all = [...MEMORIES.map((n, i) => ({ n, c: COLORS[i % COLORS.length], imp: true })),
-                       ...DECOYS.map(n => ({ n, c: '#333333', imp: false }))].sort(() => Math.random() - 0.5);
+            // Create all balls (memories + decoys), shuffled
+            let allBalls = [
+                ...MEMORIES.map((n, i) => ({
+                    n: n,
+                    c: COLORS[i % COLORS.length],
+                    imp: true
+                })),
+                ...DECOYS.map(n => ({
+                    n: n,
+                    c: '#555555',
+                    imp: false
+                }))
+            ].sort(() => Math.random() - 0.5);
 
-            let startX = 450, startY = 200, row = 0, col = 0, limit = 1;
-            all.forEach(data => {
-                balls.push({ 
-                    x: startX + (row * (BALL_RADIUS * 2 + 2)), 
-                    y: startY + (col * (BALL_RADIUS * 2 + 4)) - (row * (BALL_RADIUS + 2)), 
-                    vx: 0, vy: 0, r: BALL_RADIUS, color: data.c, text: data.n, imp: data.imp, alive: true 
+            // Position balls in triangle
+            let startX = 480;
+            let startY = 200;
+            let row = 0;
+            let col = 0;
+            let limit = 1;
+
+            allBalls.forEach(data => {
+                balls.push({
+                    x: startX + (row * (BALL_RADIUS * 2 + 2)),
+                    y: startY + (col * (BALL_RADIUS * 2 + 4)) - (row * (BALL_RADIUS + 2)),
+                    vx: 0,
+                    vy: 0,
+                    r: BALL_RADIUS,
+                    color: data.c,
+                    text: data.n,
+                    imp: data.imp,
+                    alive: true
                 });
-                col++; if(col >= limit) { col = 0; row++; limit++; }
+                
+                col++;
+                if (col >= limit) {
+                    col = 0;
+                    row++;
+                    limit++;
+                }
             });
 
             updateUI();
+            
             clearInterval(timer);
-            timer = setInterval(() => { if(active && !gameEnded) { time--; updateUI(); if(time <= 0) endGame("Time's up! ⏰"); } }, 1000);
+            timer = setInterval(() => {
+                if (active && !gameEnded) {
+                    time--;
+                    updateUI();
+                    if (time <= 0) {
+                        endGame("Time's up! ⏰");
+                    }
+                }
+            }, 1000);
+
             if (animationId) cancelAnimationFrame(animationId);
             animationId = requestAnimationFrame(gameLoop);
         }
 
         function updateUI() {
-            document.getElementById('shotsCount').innerText = shots;
-            document.getElementById('timerCount').innerText = time;
-            document.getElementById('progressCount').innerText = `${sunkCount}/${MEMORIES.length}`;
+            document.getElementById('shotsCount').textContent = shots;
+            document.getElementById('timerCount').textContent = time;
+            document.getElementById('progressCount').textContent = `${sunkCount}/${MEMORIES.length}`;
             document.getElementById('heart1').classList.toggle('active', lives >= 1);
             document.getElementById('heart2').classList.toggle('active', lives >= 2);
         }
 
         function drawBall(b) {
+            // Shadow
+            ctx.beginPath();
+            ctx.arc(b.x + 2, b.y + 2, b.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fill();
+
+            // Ball
             ctx.beginPath();
             ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-            let grad = ctx.createRadialGradient(b.x - b.r/3, b.y - b.r/3, b.r/10, b.x, b.y, b.r);
+            let grad = ctx.createRadialGradient(
+                b.x - b.r / 3,
+                b.y - b.r / 3,
+                b.r / 10,
+                b.x,
+                b.y,
+                b.r
+            );
             grad.addColorStop(0, b.isCue ? '#fff' : b.color);
             grad.addColorStop(1, b.isCue ? '#ccc' : '#000');
             ctx.fillStyle = grad;
             ctx.fill();
-            if(b.text) {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Text
+            if (b.text) {
                 ctx.fillStyle = "white";
                 ctx.font = "bold 9px Arial";
                 ctx.textAlign = "center";
-                ctx.fillText(b.text.split(' ')[0], b.x, b.y + 3);
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = '#000';
+                ctx.shadowBlur = 2;
+                ctx.fillText(b.text.split(' ')[0], b.x, b.y);
+                ctx.shadowBlur = 0;
             }
         }
 
         function gameLoop() {
-            if(!active && !gameEnded) return;
+            if (!active && !gameEnded) return;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#1a8a5d';
-            ctx.fillRect(0,0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Pockets
+            // Draw pockets
+            const pockets = [
+                [20, 20], [350, 15], [680, 20],
+                [20, 380], [350, 385], [680, 380]
+            ];
+
             ctx.fillStyle = '#050505';
-            [[20,20], [350,15], [680,20], [20,380], [350,385], [680,380]].forEach(p => {
-                ctx.beginPath(); ctx.arc(p[0], p[1], 28, 0, Math.PI*2); ctx.fill();
+            pockets.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p[0], p[1], 28, 0, Math.PI * 2);
+                ctx.fill();
             });
 
             isMoving = false;
+
+            // Update and draw balls
             balls.forEach(b => {
-                if(!b.alive) return;
-                b.x += b.vx; b.y += b.vy; b.vx *= 0.99; b.vy *= 0.99;
-                if(Math.abs(b.vx) < 0.1) b.vx = 0; if(Math.abs(b.vy) < 0.1) b.vy = 0;
-                if(b.vx !== 0 || b.vy !== 0) isMoving = true;
+                if (!b.alive) return;
 
-                if(b.x < b.r || b.x > canvas.width - b.r) { b.vx *= -0.7; b.x = b.x < b.r ? b.r : canvas.width - b.r; }
-                if(b.y < b.r || b.y > canvas.height - b.r) { b.vy *= -0.7; b.y = b.y < b.r ? b.r : canvas.height - b.r; }
+                // Move ball
+                b.x += b.vx;
+                b.y += b.vy;
+                
+                // Progressive friction - light at high speeds, heavy at low speeds
+                let speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+                let frictionFactor = speed > 3 ? 0.985 : 0.90;  // Fast = 0.985, Slow = 0.90
+                
+                b.vx *= frictionFactor;
+                b.vy *= frictionFactor;
 
-                [[20,20], [350,15], [680,20], [20,380], [350,385], [680,380]].forEach(p => {
-                    if(Math.hypot(b.x - p[0], b.y - p[1]) < 28) {
-                        if(b.isCue) { b.x = 180; b.y = 200; b.vx = 0; b.vy = 0; }
-                        else { b.alive = false; handleSink(b); }
+                if (Math.abs(b.vx) < 0.15) b.vx = 0;  // Stop sooner when slow
+                if (Math.abs(b.vy) < 0.15) b.vy = 0;
+
+                if (b.vx !== 0 || b.vy !== 0) isMoving = true;
+
+                // Wall bounces
+                if (b.x < b.r || b.x > canvas.width - b.r) {
+                    b.vx *= -0.7;
+                    b.x = b.x < b.r ? b.r : canvas.width - b.r;
+                }
+                if (b.y < b.r || b.y > canvas.height - b.r) {
+                    b.vy *= -0.7;
+                    b.y = b.y < b.r ? b.r : canvas.height - b.r;
+                }
+
+                // Check pockets
+                pockets.forEach(p => {
+                    if (Math.hypot(b.x - p[0], b.y - p[1]) < 28) {
+                        if (b.isCue) {
+                            // Reset cue ball
+                            b.x = 180;
+                            b.y = 200;
+                            b.vx = 0;
+                            b.vy = 0;
+                            document.getElementById('msg').textContent = 'Scratch! ❌';
+                        } else {
+                            b.alive = false;
+                            handleSink(b);
+                        }
                     }
                 });
+
                 drawBall(b);
             });
 
-            // Collisions
-            for(let i=0; i<balls.length; i++) {
-                for(let j=i+1; j<balls.length; j++) {
-                    let b1 = balls[i], b2 = balls[j];
-                    if(!b1.alive || !b2.alive) continue;
+            // Ball collisions
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    let b1 = balls[i];
+                    let b2 = balls[j];
+                    if (!b1.alive || !b2.alive) continue;
+
                     let dist = Math.hypot(b2.x - b1.x, b2.y - b1.y);
-                    if(dist < b1.r + b2.r) {
+                    if (dist < b1.r + b2.r) {
                         let angle = Math.atan2(b2.y - b1.y, b2.x - b1.x);
                         let v1 = b1.vx * Math.cos(angle) + b1.vy * Math.sin(angle);
                         let v2 = b2.vx * Math.cos(angle) + b2.vy * Math.sin(angle);
-                        b1.vx += (v2 - v1) * Math.cos(angle); b1.vy += (v2 - v1) * Math.sin(angle);
-                        b2.vx += (v1 - v2) * Math.cos(angle); b2.vy += (v1 - v2) * Math.sin(angle);
-                        let off = (b1.r + b2.r - dist) / 2;
-                        b1.x -= (off + 0.1) * Math.cos(angle); b1.y -= (off + 0.1) * Math.sin(angle);
-                        b2.x += (off + 0.1) * Math.cos(angle); b2.y += (off + 0.1) * Math.sin(angle);
+                        
+                        b1.vx += (v2 - v1) * Math.cos(angle);
+                        b1.vy += (v2 - v1) * Math.sin(angle);
+                        b2.vx += (v1 - v2) * Math.cos(angle);
+                        b2.vy += (v1 - v2) * Math.sin(angle);
+
+                        let overlap = (b1.r + b2.r - dist) / 2;
+                        b1.x -= (overlap + 0.1) * Math.cos(angle);
+                        b1.y -= (overlap + 0.1) * Math.sin(angle);
+                        b2.x += (overlap + 0.1) * Math.cos(angle);
+                        b2.y += (overlap + 0.1) * Math.sin(angle);
                     }
                 }
             }
 
-            if(!isMoving && !gameEnded) {
-                let dx = mouseX - cue.x, dy = mouseY - cue.y, a = Math.atan2(dy, dx);
-                ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.setLineDash([5, 5]); ctx.beginPath();
-                ctx.moveTo(cue.x, cue.y); ctx.lineTo(cue.x - Math.cos(a)*100, cue.y - Math.sin(a)*100); ctx.stroke();
+            // Draw cue stick when not moving
+            if (!isMoving && !gameEnded && cue.alive) {
+                let dx = mouseX - cue.x;
+                let dy = mouseY - cue.y;
+                let angle = Math.atan2(dy, dx);
+
+                // Aim line
+                ctx.strokeStyle = "rgba(255,255,255,0.4)";
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cue.x, cue.y);
+                ctx.lineTo(cue.x - Math.cos(angle) * 120, cue.y - Math.sin(angle) * 120);
+                ctx.stroke();
                 ctx.setLineDash([]);
-                ctx.strokeStyle = "#d7ccc8"; ctx.lineWidth = 6; ctx.beginPath();
-                ctx.moveTo(cue.x + Math.cos(a)*30, cue.y + Math.sin(a)*30);
-                ctx.lineTo(cue.x + Math.cos(a)*150, cue.y + Math.sin(a)*150); ctx.stroke();
+
+                // Cue stick
+                ctx.strokeStyle = "#d7ccc8";
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(cue.x + Math.cos(angle) * 30, cue.y + Math.sin(angle) * 30);
+                ctx.lineTo(cue.x + Math.cos(angle) * (120 + power * 2), cue.y + Math.sin(angle) * (120 + power * 2));
+                ctx.stroke();
             }
-            if(isCharging) {
+
+            // Update power meter
+            if (isCharging) {
                 power = Math.min(power + 0.3, 20);
-                document.getElementById('powerFill').style.width = (power/20*100) + '%';
+                document.getElementById('powerFill').style.width = (power / 20 * 100) + '%';
             }
+
             animationId = requestAnimationFrame(gameLoop);
         }
 
         function handleSink(ball) {
-            if(gameEnded) return;
-            if(ball.imp) {
+            if (gameEnded) return;
+
+            if (ball.imp) {
+                // Correct ball!
                 sunkCount++;
                 const item = document.getElementById(`list-${ball.text.replace(/\s/g, '')}`);
-                if(item) item.classList.add('sunk');
+                if (item) item.classList.add('sunk');
                 updateUI();
-                if(sunkCount >= MEMORIES.length) endGame("Win");
+                document.getElementById('msg').textContent = `Perfect! ${ball.text} ✅`;
+                
+                if (sunkCount >= MEMORIES.length) {
+                    endGame("Win");
+                }
             } else {
-                lives--; updateUI();
-                if(lives <= 0) endGame(`"${ball.text}" wasn't our memory! 💔`);
+                // Wrong ball!
+                lives--;
+                updateUI();
+                document.getElementById('msg').textContent = `Wrong ball! 💔`;
+                
+                if (lives <= 0) {
+                    endGame(`"${ball.text}" wasn't our memory! 💔`);
+                }
             }
         }
 
         function endGame(reason) {
             if (gameEnded) return;
-            gameEnded = true; active = false; clearInterval(timer);
-            if(reason === "Win") {
+            gameEnded = true;
+            active = false;
+            clearInterval(timer);
+
+            if (reason === "Win") {
                 document.getElementById('gameScreen').classList.add('hidden');
                 document.getElementById('winScreen').classList.remove('hidden');
             } else {
-                document.getElementById('loseMsg').innerText = reason;
+                document.getElementById('loseMsg').textContent = reason;
                 document.getElementById('overlay').classList.remove('hidden');
             }
         }
 
-        function forceWin() { gameEnded = false; endGame("Win"); }
-        function celebrate() { document.getElementById('winScreen').classList.add('hidden'); document.getElementById('celebrationScreen').classList.remove('hidden'); }
+        function forceWin() {
+            document.getElementById('overlay').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('winScreen').classList.remove('hidden');
+        }
 
-        let dodgeCount = 0;
+        function celebrate() {
+            document.getElementById('winScreen').classList.add('hidden');
+            document.getElementById('celebrationScreen').classList.remove('hidden');
+        }
+
         function dodge() {
             const btn = document.getElementById('noBtn');
             const yes = document.getElementById('yesBtn');
             dodgeCount++;
+
             btn.style.position = 'fixed';
             btn.style.top = (Math.random() * 60 + 20) + '%';
             btn.style.left = (Math.random() * 60 + 20) + '%';
             yes.style.transform = `scale(${1 + dodgeCount * 0.3})`;
             btn.style.transform = `scale(${Math.max(0.4, 1 - dodgeCount * 0.1)})`;
-            if(dodgeCount > 8) btn.classList.add('hidden');
+
+            if (dodgeCount > 5) {
+                btn.classList.add('hidden');
+            }
         }
     </script>
 </body>
